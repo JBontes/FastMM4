@@ -57,14 +57,83 @@ begin
   Result := pointer((((NativeInt(value) - 1) div granularity) + 1) * granularity);
 end;
 
+//function GetCPUTimeStamp: int64;
+//asm
+//{$IFDEF CPUX64}
+//  rdtscp       //JB: RDTSC can be executed out of order.
+//  shl   rdx, 32
+//  or    rax, rdx
+//{$ELSE}
+//  rdtsc       //JB: x86 may not have RDTSCP.
+//{$ENDIF CPUX64}
+//end;
+  //Note that while RDTSCP will not execute too early due to OOO-execution.
+  //It might execute too late, because instructions that come after are reordered
+  //before it. If that's a concern. A fake dependency chain needs to be set up that
+  //fixes this.
+  //The following code will do that and execute RDTSCP with exact precision.
+
 function GetCPUTimeStamp: int64;
-asm
-  rdtsc
 {$IFDEF CPUX64}
-  shl   rdx, 32
-  or    rax, rdx
-{$ENDIF CPUX64}
+asm
+  {$IFDEF AllowOutOfOrder}
+  rdtsc
+  {$ELSE}
+    rdtscp       //rdstcp is read serialized, it will not execute too early.
+    //also ensure it does not execute too late by setting up a false dep. chain
+    mov r8,rdx   //rdtscp changes rdx and rax, force dependency chain on rdx
+    xor r8,rbx   //push rbx, do not allow push rbx to execute OoO
+    xor rbx,rdx  //rbx=r8
+    xor rbx,r8   //rbx = 0
+    push rdx
+    push rax
+    mov rax,rbx  //rax = 0, but in a way that excludes OoO execution.
+    cpuid        //serializing instruction.
+    pop rax
+    pop rdx
+    mov rbx,r8
+    xor rbx,rdx  //restore rbx
+  {$ENDIF AllowOutOfOrder}
+  shl rdx,32
+  or rax,rdx
+  {$else}
+{$IFDEF CPUX86}
+asm
+  {$IFNDEF AllowOutOfOrder}
+    {$IFDEF ForceRDTSCP}
+      db $0F, $01, $F9   //rdtscp
+      //rdtscp       //rdstcp is read serialized, it will not execute too early.
+      //also ensure it does not execute too late
+      mov ecx,edx   //rdtscp changes rdx and rax, force dependency chain on rdx
+      xor ecx,ebx   //push ebx, do not allow push ebx to execute OoO
+      xor ebx,edx   //ebx=ecx
+      xor ebx,ecx   //ebx = 0
+      push edx
+      push ecx
+      push eax
+      mov eax,ebx  //rax = 0, but in a way that excludes OoO execution.
+      cpuid
+      pop eax
+      pop ecx
+      pop edx
+      mov ebx,ecx
+      xor ebx,edx  //restore rbx
+      {$else}
+      xor eax,eax
+      push ebx
+      cpuid         // On x86 we can't assume the existance of RDTSP
+      rdtsc
+      pop ebx       // so use CPUID to serialize
+      {$ENDIF}
+      {$ELSE}
+      rdtsc
+    {$ELSE}
+  //put ARM code here.
+{$ENDIF}
+{$ENDIF}
+{$ENDIF}
 end;
+(**)
 
 function GetThreadId: NativeInt;
 //result := GetCurrentThreadId;
@@ -110,13 +179,13 @@ asm
   pop   edi
 {$ELSE CPUX64}
   .noframe
-  push  rbx                     //rsp := rsp - 8 !
+  mov   r9,  rbx         //.noframe so better not use push
   mov   rax, oldData
   mov   rbx, newData
   mov   rcx, newReference
-  mov   r8, [destination + 8]   //+8 with respect to .noframe
+  mov   r8, [destination]
   lock cmpxchg16b [r8]
-  pop   rbx
+  mov   rbx, r9
 {$ENDIF CPUX64}
   setz  al
 end;

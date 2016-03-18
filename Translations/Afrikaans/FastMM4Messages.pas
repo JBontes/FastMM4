@@ -25,7 +25,7 @@ const
   {Memory dump message}
   MemoryDumpMsg = #13#10#13#10'Huidige geheue inhoud: 256 grepe vanaf adres ';
   {Block Error Messages}
-  BlockScanLogHeader = 'Geallokeerde blok gelys deur LogAllocatedBlocksToFile. The grootte is: ';
+  BlockScanLogHeader = 'Geallokeerde blok gelys deur LogAllocatedBlocksToFile. Die grootte is: ';
   ErrorMsgHeader = 'FastMM het ''n fout teegekom in die uitvoer van ''n ';
   GetMemMsg = 'GetMem';
   FreeMemMsg = 'FreeMem';
@@ -53,7 +53,7 @@ const
   FreedObjectClassMsg = #13#10#13#10'Vrygestelde objek klas: ';
   VirtualMethodName = #13#10#13#10'Virtuele funksie/prosedure: ';
   VirtualMethodOffset = 'VMT Adres +';
-  VirtualMethodAddress = #13#10#13#10'Virtuele funksie/prosedure address: ';
+  VirtualMethodAddress = #13#10#13#10'Virtuele funksie/prosedure adres: ';
   {Stack trace messages}
   CurrentThreadIDMsg = #13#10#13#10'Die huidige thread ID is 0x';
   CurrentStackTraceMsg = ', en die stapel spoor (terugkeer adresse) wat gelei het tot die fout is:';
@@ -115,17 +115,17 @@ const
     + #0;
   LeakMessageTitle = 'Geheue Lekkasie';
 {$ifdef UseOutputDebugString}
-  FastMMInstallMsg = 'FastMM has been installed.';
+  FastMMInstallMsg = 'FastMM is geïnstalleer.';
   FastMMInstallSharedMsg = 'Sharing an existing instance of FastMM.';
-  FastMMUninstallMsg = 'FastMM has been uninstalled.';
+  FastMMUninstallMsg = 'FastMM is verwyder.';
   FastMMUninstallSharedMsg = 'Stopped sharing an existing instance of FastMM.';
 {$endif}
 {$ifdef DetectMMOperationsAfterUninstall}
-  InvalidOperationTitle = 'MM Operation after uninstall.';
-  InvalidGetMemMsg = 'FastMM has detected a GetMem call after FastMM was uninstalled.';
-  InvalidFreeMemMsg = 'FastMM has detected a FreeMem call after FastMM was uninstalled.';
-  InvalidReallocMemMsg = 'FastMM has detected a ReallocMem call after FastMM was uninstalled.';
-  InvalidAllocMemMsg = 'FastMM has detected an AllocMem call after FastMM was uninstalled.';
+  InvalidOperationTitle = 'MM operasie na verwydering.';
+  InvalidGetMemMsg = 'FastMM het ''n GetMem roep onderskep nadat FastMM is verwyder.';
+  InvalidFreeMemMsg = 'FastMM het ''n FreeMem roep onderskep nadat FastMM is verwyder.';
+  InvalidReallocMemMsg = 'FastMM het ''n ReallocMem roep onderskep nadat FastMM is verwyder.';
+  InvalidAllocMemMsg = 'FastMM het ''n AllocMem roep onderskep nadat FastMM is verwyder.';
 {$endif}
 
 implementation
